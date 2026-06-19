@@ -1,4 +1,17 @@
-# 🔎 Assessing Language Models for Salient Class Identification
+<div align="center">
+  <h1 align="center">Assessing Language Models for Salient Class Identification</h1>
+</div>
+
+
+<div align="center">
+    <a href="https://github.com/riverBag/LLM4SalientClass">
+        <img src="https://img.shields.io/badge/GitHub-000?logo=github&logoColor=FFE165&style=for-the-badge" alt="">
+    </a>
+    <a href="https://arxiv.org/abs/xxxx.xxxxx">
+        <img src="https://img.shields.io/badge/Paper-000?logoColor=FFE165&logo=arxiv&style=for-the-badge" alt="">
+    </a>
+    <hr>
+</div>
 
 Code review requires reviewers to understand the core intent of code changes,
 which becomes difficult when a commit modifies multiple classes. In such
@@ -167,3 +180,14 @@ RQ4 performs qualitative analysis of LM failure cases. The released raw
 prediction files preserve each model response, including chain-of-thought
 outputs where applicable, so that failure cases can be inspected against the
 corresponding commit diffs and class labels in `ApacheJavaCM.jsonl`.
+
+## 📝 Citation
+
+```bibtex
+@article{Xiong2026Salient,
+  author = {Xiong, Bo and Cai, Chaoran and Wang, Chong and Liang, Peng},
+  title = {{Assessing Language Models for Salient Class Identification}},
+  journal={arXiv preprint arXiv:xxxx.xxxxx},
+  year={2026}
+}
+```
