@@ -1,0 +1,129 @@
+System Prompt:
+You are an expert software engineer. Your task is to identify the "salient class" from a given commit diff.
+
+The salient class is the primary class that drives the core intent of the commit, often triggering dependent updates in other classes.
+
+Definition:
+- A salient class is a Java class, interface, enum, or annotation whose changed behavior, API contract, lifecycle, state, or abstraction represents the main purpose of the commit.
+- A commit may have more than one salient class if multiple classes independently carry the core intent, or if a new abstraction and its main behavioral use are both essential to the commit.
+- Do not invent extra salient classes. If the commit has only one salient class, output only one.
+
+Strictly filter out Ripple Effects:
+- Callers, adapters, subclasses, or implementations that are changed only because a salient class changed its signature, return type, field type, constructor, or method contract are Ripple Effects.
+
+Output Rules:
+- Output only the salient class names.
+- Use simple class names only, without package names or file paths.
+- Wrap each salient class in its own <core class> </core class> tag.
+- Do not include explanations, reasoning, markdown, bullets, or any text outside the tags.
+
+User Prompt:
+You will first see two labeled examples. Learn the distinction between salient classes and Ripple Effects from them. Then identify the salient class or classes in the target diff.
+
+=== START OF EXAMPLE 1 ===
+
+--- START OF CODE DIFF ---
+diff --git a/android/sdk/src/main/java/com/taobao/weex/ui/component/WXImage.java b/android/sdk/src/main/java/com/taobao/weex/ui/component/WXImage.java
+index c56deea07b..b80e4b0706 100755
+--- a/android/sdk/src/main/java/com/taobao/weex/ui/component/WXImage.java
++++ b/android/sdk/src/main/java/com/taobao/weex/ui/component/WXImage.java
+@@ -249,7 +249,7 @@ public WXImage(WXSDKInstance instance, WXDomObject node,
+     }
+ 
+     @Override
+-    protected WXImageView initComponentHostView(Context context) {
++    protected ImageView initComponentHostView(Context context) {
+         WXImageView view = new WXImageView(mContext);
+         view.setScaleType(ScaleType.FIT_XY);
+         return view;
+diff --git a/android/sdk/src/test/java/com/taobao/weex/ui/component/WXImageTest.java b/android/sdk/src/test/java/com/taobao/weex/ui/component/WXImageTest.java
+index 6bf258d4f7..3283fb094b 100644
+--- a/android/sdk/src/test/java/com/taobao/weex/ui/component/WXImageTest.java
++++ b/android/sdk/src/test/java/com/taobao/weex/ui/component/WXImageTest.java
+@@ -167,7 +167,7 @@ public void setUp() throws Exception {
+   @PrepareForTest(WXImageView.class)
+   public void testInitComponentHostView() throws Exception {
+-    WXImageView imageView = mWXImage.initComponentHostView(null);
++    ImageView imageView = mWXImage.initComponentHostView(null);
+     assertEquals(imageView.getClass(), WXImageView.class);
+   }
+--- END OF CODE DIFF ---
+
+--- START OF CORE CLASS OUTPUT ---
+<core class>WXImage</core class>
+--- END OF CORE CLASS OUTPUT ---
+
+=== END OF EXAMPLE 1 ===
+
+=== START OF EXAMPLE 2 ===
+
+--- START OF CODE DIFF ---
+diff --git a/src/main/java/com/example/storage/EntityStore.java b/src/main/java/com/example/storage/EntityStore.java
+index 9ad7181..b2f43df 100644
+--- a/src/main/java/com/example/storage/EntityStore.java
++++ b/src/main/java/com/example/storage/EntityStore.java
+@@ -8,7 +8,7 @@ public interface EntityStore {
+     Entity save(Entity entity);
+ 
+-    Entity findById(String id);
++    Optional<Entity> findById(String id);
+ }
+diff --git a/src/main/java/com/example/storage/InMemoryEntityStore.java b/src/main/java/com/example/storage/InMemoryEntityStore.java
+index 4a3d121..0a863cb 100644
+--- a/src/main/java/com/example/storage/InMemoryEntityStore.java
++++ b/src/main/java/com/example/storage/InMemoryEntityStore.java
+@@ -21,8 +21,8 @@ public class InMemoryEntityStore implements EntityStore {
+     }
+ 
+     @Override
+-    public Entity findById(String id) {
+-        return entities.get(id);
++    public Optional<Entity> findById(String id) {
++        return Optional.ofNullable(entities.get(id));
+     }
+ }
+diff --git a/src/main/java/com/example/storage/JdbcEntityStore.java b/src/main/java/com/example/storage/JdbcEntityStore.java
+index 15fd011..e17ac7a 100644
+--- a/src/main/java/com/example/storage/JdbcEntityStore.java
++++ b/src/main/java/com/example/storage/JdbcEntityStore.java
+@@ -34,8 +34,8 @@ public class JdbcEntityStore implements EntityStore {
+     }
+ 
+     @Override
+-    public Entity findById(String id) {
+-        return mapper.selectById(id);
++    public Optional<Entity> findById(String id) {
++        return Optional.ofNullable(mapper.selectById(id));
+     }
+ }
+diff --git a/src/main/java/com/example/service/EntityService.java b/src/main/java/com/example/service/EntityService.java
+index 91debb0..dc218e3 100644
+--- a/src/main/java/com/example/service/EntityService.java
++++ b/src/main/java/com/example/service/EntityService.java
+@@ -17,6 +17,6 @@ public class EntityService {
+     }
+ 
+     public Entity requireEntity(String id) {
+-        return store.findById(id);
++        return store.findById(id).orElseThrow(() -> new EntityNotFoundException(id));
+     }
+ }
+--- END OF CODE DIFF ---
+
+--- START OF CORE CLASS OUTPUT ---
+<core class>EntityStore</core class>
+--- END OF CORE CLASS OUTPUT ---
+
+=== END OF EXAMPLE 2 ===
+
+=== START OF YOUR TASK ===
+
+--- START OF CODE DIFF ---
+{QUERY_DIFF}
+--- END OF CODE DIFF ---
+
+=== END OF YOUR TASK ===
+
+## Output Format:
+
+<core class>ClassName</core class>
