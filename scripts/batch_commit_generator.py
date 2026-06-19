@@ -20,20 +20,20 @@ load_dotenv()
 # Global OpenAI-compatible clients, initialized lazily per provider
 clients = {}
 
-# Hajimi: multiple keys from OPENAI_hajimi_API_KEY and OPENAI_hajimi_API_KEY1..N, round-robin per request.
-_hajimi_clients = None
-_hajimi_rr_lock = threading.Lock()
-_hajimi_rr_idx = 0
+# multiple keys from OPENAI_API_KEY and OPENAI_API_KEY1..N, round-robin per request.
+_clients = None
+_rr_lock = threading.Lock()
+_rr_idx = 0
 
 
-def _collect_hajimi_api_keys():
-    """Returns ordered unique API keys for the Hajimi / gpt-5.4* provider."""
+def _collect_api_keys():
+    """Returns ordered unique API keys for the gpt-5.4 provider."""
     keys = []
     for env_name in (
-        "OPENAI_hajimi_API_KEY",
-        "OPENAI_hajimi_API_KEY1",
-        "OPENAI_hajimi_API_KEY2",
-        "OPENAI_hajimi_API_KEY3",
+        "OPENAI_API_KEY",
+        "OPENAI_API_KEY1",
+        "OPENAI_API_KEY2",
+        "OPENAI_API_KEY3",
     ):
         v = os.getenv(env_name)
         if v and str(v).strip():
@@ -47,17 +47,16 @@ def _collect_hajimi_api_keys():
     return out
 
 
-def _ensure_hajimi_clients():
-    """Builds one AsyncOpenAI client per Hajimi API key (same base URL, distinct keys)."""
-    global _hajimi_clients
-    if _hajimi_clients is not None:
-        return _hajimi_clients
-    keys = _collect_hajimi_api_keys()
-    base_url = (os.getenv("OPENAI_hajimi_BASE_URL") or "").strip().rstrip("/")
+def _ensure_clients():
+    """Builds one AsyncOpenAI client per API key (same base URL, distinct keys)."""
+    global _clients
+    if _clients is not None:
+        return _clients
+    keys = _collect_api_keys()
+    base_url = (os.getenv("OPENAI_BASE_URL") or "").strip().rstrip("/")
     if not keys or not base_url:
         raise ValueError(
-            "Hajimi API key(s) (OPENAI_hajimi_API_KEY or OPENAI_hajimi_API_KEY1..3) "
-            "and OPENAI_hajimi_BASE_URL must be set."
+            "Error: For gpt-5.4 model, OPENAI_BASE_URL and at least one API key (OPENAI_API_KEY or OPENAI_API_KEY1..N) must be set in environment variables."
         )
     try:
         import httpx
@@ -67,10 +66,10 @@ def _ensure_hajimi_clients():
             "Missing dependency: openai/httpx. Install before LLM calls."
         ) from e
     _ua = {"User-Agent": "httpx/0.27.2"}
-    _hajimi_clients = []
+    _clients = []
     for key in keys:
         http_client = httpx.AsyncClient(timeout=120.0, headers=_ua)
-        _hajimi_clients.append(
+        _clients.append(
             AsyncOpenAI(
                 api_key=key,
                 base_url=base_url,
@@ -78,16 +77,16 @@ def _ensure_hajimi_clients():
                 default_headers=_ua,
             )
         )
-    return _hajimi_clients
+    return _clients
 
 
-def _pick_hajimi_client():
-    """Round-robin across Hajimi clients to spread load across API keys / quotas."""
-    global _hajimi_rr_idx
-    clist = _ensure_hajimi_clients()
-    with _hajimi_rr_lock:
-        client = clist[_hajimi_rr_idx % len(clist)]
-        _hajimi_rr_idx += 1
+def _pick_client():
+    """Round-robin across API clients to spread load across API keys / quotas."""
+    global _rr_idx
+    clist = _ensure_clients()
+    with _rr_lock:
+        client = clist[_rr_idx % len(clist)]
+        _rr_idx += 1
         return client
 
 # Retries when the HTTP call succeeds but assistant message has no text content
@@ -129,7 +128,7 @@ def get_provider_config(model_name: str):
             os.getenv("OPENAI_DEEPSEEK_BASE_URL"),
         )
     if model_lower.startswith("gpt-5.4"):
-        return ("hajimi", None, os.getenv("OPENAI_hajimi_BASE_URL"))
+        return ("gpt-5.4", os.getenv("OPENAI_BASE_URL"))
     return (
         "qwen",
         os.getenv("OPENAI_QWEN_GPT_API_KEY"),
@@ -139,8 +138,8 @@ def get_provider_config(model_name: str):
 def get_client(model_name: str):
     """Initializes and returns the provider client, reusing it if already created."""
     provider, api_key, base_url = get_provider_config(model_name)
-    if provider == "hajimi":
-        return _pick_hajimi_client()
+    if provider == "gpt-5.4":
+        return _pick_client()
     if provider not in clients:
         try:
             from openai import AsyncOpenAI
@@ -517,8 +516,8 @@ async def run_tasks_file(
         return
 
     if model_name.lower().startswith("gpt-5.4"):
-        hk = _collect_hajimi_api_keys()
-        print(f"Hajimi: {len(hk)} API key(s) will round-robin for this run.")
+        hk = _collect_api_keys()
+        print(f"{len(hk)} API key(s) will round-robin for this run.")
 
     completed_task_ids = load_completed_task_ids(output_file)
     if completed_task_ids:
