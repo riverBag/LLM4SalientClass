@@ -25,7 +25,7 @@ templates, the scripts used to generate and run LM tasks, the reproduced
 Most-Modified-Class baseline implementation, and the raw LM prediction files
 used in the paper.
 
-## ⚙️ Usage As a Replication Package
+## ⚙️ Usage as a Replication Package
 
 First, create the Python environment:
 
