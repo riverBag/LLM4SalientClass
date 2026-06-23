@@ -7,7 +7,7 @@
     <a href="https://github.com/riverBag/LLM4SalientClass">
         <img src="https://img.shields.io/badge/GitHub-000?logo=github&logoColor=FFE165&style=for-the-badge" alt="">
     </a>
-    <a href="https://arxiv.org/abs/xxxx.xxxxx">
+    <a href="https://arxiv.org/abs/2606.21629">
         <img src="https://img.shields.io/badge/Paper-000?logoColor=FFE165&logo=arxiv&style=for-the-badge" alt="">
     </a>
     <hr>
@@ -187,7 +187,7 @@ corresponding commit diffs and class labels in `ApacheJavaCM.jsonl`.
 @article{Xiong2026Salient,
   author = {Xiong, Bo and Cai, Chaoran and Wang, Chong and Liang, Peng},
   title = {{Assessing Language Models for Salient Class Identification}},
-  journal={arXiv preprint arXiv:xxxx.xxxxx},
+  journal={arXiv preprint arXiv:2606.21629},
   year={2026}
 }
 ```
