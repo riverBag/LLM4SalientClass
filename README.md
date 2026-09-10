@@ -186,7 +186,7 @@ corresponding commit diffs and class labels in `ApacheJavaCM.jsonl`.
 
 ```bibtex
 @article{Xiong2026Salient,
-  author = {Xiong, Bo and Cai, Chaoran and Wang, Chong and Liang, Peng},
+  author = {Xiong, Bo and Cai, Chaoran and Xiong, Kaipeng and Wang, Chong and Liang, Peng},
   title = {{Assessing Language Models for Salient Class Identification}},
   journal={arXiv preprint arXiv:2606.21629},
   year={2026}
